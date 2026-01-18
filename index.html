@@ -14,74 +14,118 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      background: #1a1a1a;
+      background: #000000;
       color: white;
       overflow: hidden;
       width: 1920px;
       height: 1080px;
     }
 
-    #container {
+    #main-container {
       display: flex;
       width: 100%;
-      height: calc(100% - 120px);
-      padding: 20px;
-      gap: 20px;
+      height: 100%;
+      background: #000000;
     }
 
-    /* Active Speaker Section - LEFT */
-    #active-speaker {
-      flex: 0 0 65%;
+    /* Left side - Video Player */
+    #video-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #000000;
+      padding: 30px;
+      padding-right: 15px;
+    }
+
+    #video-player {
+      flex: 1;
       background: #2a2a2a;
-      border-radius: 12px;
-      border: 3px solid #4a5568;
+      border-radius: 16px;
       position: relative;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 20px;
     }
 
-    #active-speaker video {
+    #video-player video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    #active-speaker-label {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(26, 32, 44, 0.9);
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 20px;
-      font-weight: 600;
-      border: 2px solid #4a5568;
-      z-index: 10;
+    #video-placeholder {
+      font-size: 28px;
+      color: #ffffff;
+      font-weight: 500;
     }
 
-    #active-speaker-placeholder {
-      font-size: 24px;
-      color: #718096;
+    /* Room info footer */
+    #room-info {
+      background: transparent;
+      padding: 0;
     }
 
-    /* Participants Grid - RIGHT */
-    #participants {
-      flex: 0 0 calc(35% - 20px);
+    #room-info div {
+      font-size: 18px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    .info-label {
+      color: #ffffff;
+    }
+
+    /* Right side - Active Speaker + Participants */
+    #right-section {
+      width: 400px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      background: #000000;
+      padding: 30px;
+      padding-left: 15px;
+      gap: 20px;
+    }
+
+    /* Active Speaker Box */
+    #active-speaker-container {
+      background: #1e3a5f;
+      border-radius: 12px;
+      border: 3px solid #4a6b8a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+    }
+
+    #active-speaker-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    #active-speaker-container video {
+      display: none;
+    }
+
+    /* Participants Section */
+    #participants-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     #participants-header {
-      background: rgba(26, 32, 44, 0.9);
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
-      border: 2px solid #4a5568;
+      color: #ffffff;
+      margin-bottom: 12px;
       text-align: center;
     }
 
@@ -89,32 +133,30 @@
       flex: 1;
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
       overflow-y: auto;
-      padding-right: 8px;
       align-content: start;
     }
 
     /* Custom scrollbar */
     #participants-grid::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
 
     #participants-grid::-webkit-scrollbar-track {
-      background: #2a2a2a;
-      border-radius: 4px;
+      background: transparent;
     }
 
     #participants-grid::-webkit-scrollbar-thumb {
-      background: #4a5568;
-      border-radius: 4px;
+      background: #4a6b8a;
+      border-radius: 3px;
     }
 
     .participant-tile {
       aspect-ratio: 4 / 3;
-      background: #2d3748;
-      border-radius: 8px;
-      border: 2px solid #4a5568;
+      background: #2d3f54;
+      border-radius: 10px;
+      border: 2px solid #4a6b8a;
       position: relative;
       overflow: hidden;
       display: flex;
@@ -128,78 +170,66 @@
       object-fit: cover;
     }
 
+    .participant-tile.empty {
+      background: #1e2d3d;
+    }
+
     .participant-name {
       position: absolute;
       bottom: 8px;
       left: 8px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 4px 10px;
       border-radius: 4px;
       font-size: 12px;
+      font-weight: 500;
       max-width: calc(100% - 16px);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       z-index: 10;
-    }
-
-    .participant-placeholder {
-      color: #718096;
-      font-size: 14px;
-    }
-
-    /* Room Info Footer */
-    #room-info {
-      height: 100px;
-      background: #1a1a1a;
-      padding: 20px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-top: 2px solid #2a2a2a;
-    }
-
-    #room-info div {
-      font-size: 16px;
-      color: #e2e8f0;
-    }
-
-    .info-label {
-      color: #a0aec0;
-      margin-right: 8px;
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <!-- Active Speaker -->
-    <div id="active-speaker">
-      <div id="active-speaker-label">Active Speaker</div>
-      <div id="active-speaker-placeholder">Video Player</div>
+  <div id="main-container">
+    <!-- Left Section: Video Player + Room Info -->
+    <div id="video-section">
+      <div id="video-player">
+        <div id="video-placeholder">Video Player</div>
+      </div>
+      
+      <div id="room-info">
+        <div>
+          <span class="info-label">Source name: Livestream 1</span>
+        </div>
+        <div>
+          <span class="info-label" id="timestamp"></span>
+        </div>
+        <div>
+          <span class="info-label">Room name: <span id="room-name">Alex's Editing Room</span></span>
+        </div>
+        <div>
+          <span class="info-label" id="room-ids">Room ID - Team ID - Session ID</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Participants Grid -->
-    <div id="participants">
-      <div id="participants-header">Participant videos</div>
-      <div id="participants-grid"></div>
-    </div>
-  </div>
+    <!-- Right Section: Active Speaker + Participant Grid -->
+    <div id="right-section">
+      <!-- Active Speaker -->
+      <div id="active-speaker-container">
+        <div id="active-speaker-title">Active Speaker</div>
+      </div>
 
-  <!-- Room Info Footer -->
-  <div id="room-info">
-    <div>
-      <span class="info-label">Source name:</span>
-      <span id="source-name">Livestream 1</span>
-    </div>
-    <div>
-      <span class="info-label">Timestamp:</span>
-      <span id="timestamp"></span>
-      <span style="margin: 0 20px;">|</span>
-      <span class="info-label">Room name:</span>
-      <span id="room-name"></span>
-    </div>
-    <div>
-      <span id="room-ids">Room ID - Team ID - Session ID</span>
+      <!-- Participants Grid -->
+      <div id="participants-container">
+        <div id="participants-header">Participant videos</div>
+        <div id="participants-grid">
+          <!-- Empty tiles will be created here -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -215,8 +245,38 @@
     let room;
     let activeSpeakerParticipant = null;
     const participantElements = new Map();
+    const MAX_PARTICIPANT_TILES = 14; // 7 rows x 2 columns
+
+    // Initialize empty participant tiles
+    function initializeEmptyTiles() {
+      const grid = document.getElementById('participants-grid');
+      grid.innerHTML = ''; // Clear existing
+      
+      for (let i = 0; i < MAX_PARTICIPANT_TILES; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'participant-tile empty';
+        tile.id = `tile-${i}`;
+        grid.appendChild(tile);
+      }
+    }
+
+    function updateTimestamp() {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: '2-digit', 
+        year: 'numeric' 
+      });
+      const timeStr = now.toTimeString().split(' ')[0];
+      document.getElementById('timestamp').textContent = `${dateStr} - ${timeStr} UTC`;
+    }
 
     async function init() {
+      // Initialize UI
+      initializeEmptyTiles();
+      updateTimestamp();
+      setInterval(updateTimestamp, 1000);
+
       if (!url || !token) {
         console.error('Missing URL or token');
         return;
@@ -253,8 +313,8 @@
           handleParticipantConnected(participant);
         });
 
-        // Set initial active speaker (usually local participant)
-        if (!activeSpeakerParticipant) {
+        // Set initial active speaker
+        if (!activeSpeakerParticipant && room.localParticipant) {
           setActiveSpeaker(room.localParticipant);
         }
 
@@ -264,18 +324,8 @@
     }
 
     function updateRoomInfo() {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: '2-digit', 
-        year: 'numeric' 
-      });
-      const timeStr = now.toTimeString().split(' ')[0];
-      
-      document.getElementById('timestamp').textContent = `${dateStr} - ${timeStr} UTC`;
       document.getElementById('room-name').textContent = room.name || "Alex's Editing Room";
       
-      // Update room IDs if you have them
       const metadata = room.metadata ? JSON.parse(room.metadata) : {};
       if (metadata.roomId || metadata.teamId || metadata.sessionId) {
         document.getElementById('room-ids').textContent = 
@@ -283,13 +333,36 @@
       }
     }
 
+    function getNextAvailableTile() {
+      for (let i = 0; i < MAX_PARTICIPANT_TILES; i++) {
+        const tile = document.getElementById(`tile-${i}`);
+        if (tile && tile.classList.contains('empty')) {
+          return tile;
+        }
+      }
+      return null;
+    }
+
     function handleParticipantConnected(participant) {
       console.log('Participant connected:', participant.identity);
       
-      // Create participant tile
-      const tile = createParticipantTile(participant);
+      const tile = getNextAvailableTile();
+      if (!tile) {
+        console.warn('No available tiles for participant:', participant.identity);
+        return;
+      }
+
+      // Mark tile as occupied
+      tile.classList.remove('empty');
+      tile.id = `participant-${participant.identity}`;
+      
+      // Add name label
+      const nameLabel = document.createElement('div');
+      nameLabel.className = 'participant-name';
+      nameLabel.textContent = participant.identity;
+      tile.appendChild(nameLabel);
+      
       participantElements.set(participant.identity, tile);
-      document.getElementById('participants-grid').appendChild(tile);
 
       // Attach existing tracks
       participant.videoTracks.forEach(publication => {
@@ -310,35 +383,27 @@
       
       const tile = participantElements.get(participant.identity);
       if (tile) {
-        tile.remove();
+        // Clear tile content
+        tile.innerHTML = '';
+        tile.classList.add('empty');
+        tile.id = `tile-${Array.from(document.querySelectorAll('.participant-tile')).indexOf(tile)}`;
         participantElements.delete(participant.identity);
       }
 
       // If active speaker left, switch to someone else
       if (activeSpeakerParticipant && activeSpeakerParticipant.identity === participant.identity) {
         const participants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
-        if (participants.length > 0) {
-          setActiveSpeaker(participants[0]);
+        const remaining = participants.filter(p => p.identity !== participant.identity);
+        if (remaining.length > 0) {
+          setActiveSpeaker(remaining[0]);
+        } else {
+          activeSpeakerParticipant = null;
+          // Clear active speaker display
+          const container = document.getElementById('active-speaker-container');
+          const existingVideo = container.querySelector('video');
+          if (existingVideo) existingVideo.remove();
         }
       }
-    }
-
-    function createParticipantTile(participant) {
-      const tile = document.createElement('div');
-      tile.className = 'participant-tile';
-      tile.id = `participant-${participant.identity}`;
-      
-      const placeholder = document.createElement('div');
-      placeholder.className = 'participant-placeholder';
-      placeholder.textContent = 'No video';
-      tile.appendChild(placeholder);
-      
-      const nameLabel = document.createElement('div');
-      nameLabel.className = 'participant-name';
-      nameLabel.textContent = participant.identity;
-      tile.appendChild(nameLabel);
-      
-      return tile;
     }
 
     function handleTrackSubscribed(track, publication, participant) {
@@ -369,9 +434,6 @@
       // Add to participant tile
       const tile = participantElements.get(participant.identity);
       if (tile) {
-        const placeholder = tile.querySelector('.participant-placeholder');
-        if (placeholder) placeholder.remove();
-        
         const existingVideo = tile.querySelector('video');
         if (existingVideo) existingVideo.remove();
         
@@ -379,10 +441,13 @@
         tile.insertBefore(videoElement, nameLabel);
       }
 
-      // Update active speaker view if needed
+      // Update active speaker view if this is the active speaker
       if (activeSpeakerParticipant && activeSpeakerParticipant.identity === participant.identity) {
         updateActiveSpeakerView(participant);
       }
+
+      // Update main video player if this is the first participant
+      updateMainVideoPlayer();
     }
 
     function attachAudioTrack(track, participant) {
@@ -404,37 +469,52 @@
       console.log('Setting active speaker:', participant.identity);
       activeSpeakerParticipant = participant;
       updateActiveSpeakerView(participant);
+      updateMainVideoPlayer();
     }
 
     function updateActiveSpeakerView(participant) {
-      const activeSpeakerDiv = document.getElementById('active-speaker');
+      // Active speaker box doesn't show video, just the title
+      // Keep it as is per your design
+    }
+
+    function updateMainVideoPlayer() {
+      const videoPlayer = document.getElementById('video-player');
+      const placeholder = document.getElementById('video-placeholder');
       
       // Remove existing video
-      const existingVideo = activeSpeakerDiv.querySelector('video');
+      const existingVideo = videoPlayer.querySelector('video');
       if (existingVideo) existingVideo.remove();
 
-      // Hide placeholder
-      const placeholder = document.getElementById('active-speaker-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
+      // Find the active speaker or any participant with video
+      let participantToShow = activeSpeakerParticipant;
+      
+      if (!participantToShow) {
+        // Get first available participant
+        const allParticipants = [room?.localParticipant, ...Array.from(room?.remoteParticipants?.values() || [])].filter(Boolean);
+        participantToShow = allParticipants[0];
+      }
 
-      // Find video track
-      let videoTrack = null;
-      participant.videoTracks.forEach(publication => {
-        if (publication.isSubscribed && publication.track) {
-          videoTrack = publication.track;
+      if (participantToShow) {
+        let videoTrack = null;
+        participantToShow.videoTracks.forEach(publication => {
+          if (publication.isSubscribed && publication.track) {
+            videoTrack = publication.track;
+          }
+        });
+
+        if (videoTrack) {
+          const videoElement = videoTrack.attach();
+          videoElement.style.width = '100%';
+          videoElement.style.height = '100%';
+          videoElement.style.objectFit = 'cover';
+          
+          placeholder.style.display = 'none';
+          videoPlayer.appendChild(videoElement);
+        } else {
+          placeholder.style.display = 'block';
         }
-      });
-
-      if (videoTrack) {
-        const videoElement = videoTrack.attach();
-        videoElement.style.width = '100%';
-        videoElement.style.height = '100%';
-        videoElement.style.objectFit = 'cover';
-        
-        const label = activeSpeakerDiv.querySelector('#active-speaker-label');
-        activeSpeakerDiv.insertBefore(videoElement, label);
       } else {
-        if (placeholder) placeholder.style.display = 'block';
+        placeholder.style.display = 'block';
       }
     }
 
@@ -444,7 +524,6 @@
       init();
     });
 
-    // Fallback initialization
     if (document.readyState === 'complete') {
       init();
     }
