@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recording Layout</title>
+  <script src="https://unpkg.com/livekit-client@2.5.8/dist/livekit-client.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #1a1a1a;
+      color: white;
+      overflow: hidden;
+      width: 1920px;
+      height: 1080px;
+    }
+
+    #container {
+      display: flex;
+      width: 100%;
+      height: calc(100% - 120px);
+      padding: 20px;
+      gap: 20px;
+    }
+
+    /* Active Speaker Section - LEFT */
+    #active-speaker {
+      flex: 0 0 65%;
+      background: #2a2a2a;
+      border-radius: 12px;
+      border: 3px solid #4a5568;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #active-speaker video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #active-speaker-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 32, 44, 0.9);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 600;
+      border: 2px solid #4a5568;
+      z-index: 10;
+    }
+
+    #active-speaker-placeholder {
+      font-size: 24px;
+      color: #718096;
+    }
+
+    /* Participants Grid - RIGHT */
+    #participants {
+      flex: 0 0 calc(35% - 20px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #participants-header {
+      background: rgba(26, 32, 44, 0.9);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      border: 2px solid #4a5568;
+      text-align: center;
+    }
+
+    #participants-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      overflow-y: auto;
+      padding-right: 8px;
+      align-content: start;
+    }
+
+    /* Custom scrollbar */
+    #participants-grid::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #participants-grid::-webkit-scrollbar-track {
+      background: #2a2a2a;
+      border-radius: 4px;
+    }
+
+    #participants-grid::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      border-radius: 4px;
+    }
+
+    .participant-tile {
+      aspect-ratio: 4 / 3;
+      background: #2d3748;
+      border-radius: 8px;
+      border: 2px solid #4a5568;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .participant-tile video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .participant-name {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      max-width: calc(100% - 16px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .participant-placeholder {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    /* Room Info Footer */
+    #room-info {
+      height: 100px;
+      background: #1a1a1a;
+      padding: 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 2px solid #2a2a2a;
+    }
+
+    #room-info div {
+      font-size: 16px;
+      color: #e2e8f0;
+    }
+
+    .info-label {
+      color: #a0aec0;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- Active Speaker -->
+    <div id="active-speaker">
+      <div id="active-speaker-label">Active Speaker</div>
+      <div id="active-speaker-placeholder">Video Player</div>
+    </div>
+
+    <!-- Participants Grid -->
+    <div id="participants">
+      <div id="participants-header">Participant videos</div>
+      <div id="participants-grid"></div>
+    </div>
+  </div>
+
+  <!-- Room Info Footer -->
+  <div id="room-info">
+    <div>
+      <span class="info-label">Source name:</span>
+      <span id="source-name">Livestream 1</span>
+    </div>
+    <div>
+      <span class="info-label">Timestamp:</span>
+      <span id="timestamp"></span>
+      <span style="margin: 0 20px;">|</span>
+      <span class="info-label">Room name:</span>
+      <span id="room-name"></span>
+    </div>
+    <div>
+      <span id="room-ids">Room ID - Team ID - Session ID</span>
+    </div>
+  </div>
+
+  <script>
+    console.log('Layout template loaded');
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const url = urlParams.get('url');
+    const token = urlParams.get('token');
+
+    console.log('Connection params:', { url: !!url, token: !!token });
+
+    let room;
+    let activeSpeakerParticipant = null;
+    const participantElements = new Map();
+
+    async function init() {
+      if (!url || !token) {
+        console.error('Missing URL or token');
+        return;
+      }
+
+      try {
+        room = new LivekitClient.Room({
+          adaptiveStream: true,
+          dynacast: true,
+        });
+        
+        // Event listeners
+        room.on(LivekitClient.RoomEvent.ParticipantConnected, handleParticipantConnected);
+        room.on(LivekitClient.RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, handleTrackSubscribed);
+        room.on(LivekitClient.RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
+        room.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, handleActiveSpeakersChanged);
+        room.on(LivekitClient.RoomEvent.Connected, () => {
+          console.log('Room connected successfully');
+          updateRoomInfo();
+        });
+
+        await room.connect(url, token);
+        
+        console.log('Connected to room:', room.name);
+        console.log('Local participant:', room.localParticipant.identity);
+        console.log('Remote participants:', Array.from(room.remoteParticipants.keys()));
+
+        // Handle local participant
+        handleParticipantConnected(room.localParticipant);
+        
+        // Handle existing remote participants
+        room.remoteParticipants.forEach(participant => {
+          handleParticipantConnected(participant);
+        });
+
+        // Set initial active speaker (usually local participant)
+        if (!activeSpeakerParticipant) {
+          setActiveSpeaker(room.localParticipant);
+        }
+
+      } catch (error) {
+        console.error('Failed to connect:', error);
+      }
+    }
+
+    function updateRoomInfo() {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: '2-digit', 
+        year: 'numeric' 
+      });
+      const timeStr = now.toTimeString().split(' ')[0];
+      
+      document.getElementById('timestamp').textContent = `${dateStr} - ${timeStr} UTC`;
+      document.getElementById('room-name').textContent = room.name || "Alex's Editing Room";
+      
+      // Update room IDs if you have them
+      const metadata = room.metadata ? JSON.parse(room.metadata) : {};
+      if (metadata.roomId || metadata.teamId || metadata.sessionId) {
+        document.getElementById('room-ids').textContent = 
+          `${metadata.roomId || 'Room ID'} - ${metadata.teamId || 'Team ID'} - ${metadata.sessionId || 'Session ID'}`;
+      }
+    }
+
+    function handleParticipantConnected(participant) {
+      console.log('Participant connected:', participant.identity);
+      
+      // Create participant tile
+      const tile = createParticipantTile(participant);
+      participantElements.set(participant.identity, tile);
+      document.getElementById('participants-grid').appendChild(tile);
+
+      // Attach existing tracks
+      participant.videoTracks.forEach(publication => {
+        if (publication.isSubscribed && publication.track) {
+          attachVideoTrack(publication.track, participant);
+        }
+      });
+
+      participant.audioTracks.forEach(publication => {
+        if (publication.isSubscribed && publication.track) {
+          attachAudioTrack(publication.track, participant);
+        }
+      });
+    }
+
+    function handleParticipantDisconnected(participant) {
+      console.log('Participant disconnected:', participant.identity);
+      
+      const tile = participantElements.get(participant.identity);
+      if (tile) {
+        tile.remove();
+        participantElements.delete(participant.identity);
+      }
+
+      // If active speaker left, switch to someone else
+      if (activeSpeakerParticipant && activeSpeakerParticipant.identity === participant.identity) {
+        const participants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
+        if (participants.length > 0) {
+          setActiveSpeaker(participants[0]);
+        }
+      }
+    }
+
+    function createParticipantTile(participant) {
+      const tile = document.createElement('div');
+      tile.className = 'participant-tile';
+      tile.id = `participant-${participant.identity}`;
+      
+      const placeholder = document.createElement('div');
+      placeholder.className = 'participant-placeholder';
+      placeholder.textContent = 'No video';
+      tile.appendChild(placeholder);
+      
+      const nameLabel = document.createElement('div');
+      nameLabel.className = 'participant-name';
+      nameLabel.textContent = participant.identity;
+      tile.appendChild(nameLabel);
+      
+      return tile;
+    }
+
+    function handleTrackSubscribed(track, publication, participant) {
+      console.log('Track subscribed:', track.kind, participant.identity);
+      
+      if (track.kind === 'video') {
+        attachVideoTrack(track, participant);
+      } else if (track.kind === 'audio') {
+        attachAudioTrack(track, participant);
+      }
+    }
+
+    function handleTrackUnsubscribed(track, publication, participant) {
+      console.log('Track unsubscribed:', track.kind, participant.identity);
+      
+      if (track.kind === 'video') {
+        const elements = track.detach();
+        elements.forEach(el => el.remove());
+      }
+    }
+
+    function attachVideoTrack(track, participant) {
+      const videoElement = track.attach();
+      videoElement.style.width = '100%';
+      videoElement.style.height = '100%';
+      videoElement.style.objectFit = 'cover';
+
+      // Add to participant tile
+      const tile = participantElements.get(participant.identity);
+      if (tile) {
+        const placeholder = tile.querySelector('.participant-placeholder');
+        if (placeholder) placeholder.remove();
+        
+        const existingVideo = tile.querySelector('video');
+        if (existingVideo) existingVideo.remove();
+        
+        const nameLabel = tile.querySelector('.participant-name');
+        tile.insertBefore(videoElement, nameLabel);
+      }
+
+      // Update active speaker view if needed
+      if (activeSpeakerParticipant && activeSpeakerParticipant.identity === participant.identity) {
+        updateActiveSpeakerView(participant);
+      }
+    }
+
+    function attachAudioTrack(track, participant) {
+      const audioElement = track.attach();
+      document.body.appendChild(audioElement);
+    }
+
+    function handleActiveSpeakersChanged(speakers) {
+      console.log('Active speakers changed:', speakers.map(s => s.identity));
+      
+      if (speakers.length > 0) {
+        setActiveSpeaker(speakers[0]);
+      }
+    }
+
+    function setActiveSpeaker(participant) {
+      if (!participant) return;
+      
+      console.log('Setting active speaker:', participant.identity);
+      activeSpeakerParticipant = participant;
+      updateActiveSpeakerView(participant);
+    }
+
+    function updateActiveSpeakerView(participant) {
+      const activeSpeakerDiv = document.getElementById('active-speaker');
+      
+      // Remove existing video
+      const existingVideo = activeSpeakerDiv.querySelector('video');
+      if (existingVideo) existingVideo.remove();
+
+      // Hide placeholder
+      const placeholder = document.getElementById('active-speaker-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+
+      // Find video track
+      let videoTrack = null;
+      participant.videoTracks.forEach(publication => {
+        if (publication.isSubscribed && publication.track) {
+          videoTrack = publication.track;
+        }
+      });
+
+      if (videoTrack) {
+        const videoElement = videoTrack.attach();
+        videoElement.style.width = '100%';
+        videoElement.style.height = '100%';
+        videoElement.style.objectFit = 'cover';
+        
+        const label = activeSpeakerDiv.querySelector('#active-speaker-label');
+        activeSpeakerDiv.insertBefore(videoElement, label);
+      } else {
+        if (placeholder) placeholder.style.display = 'block';
+      }
+    }
+
+    // Initialize
+    window.addEventListener('load', () => {
+      console.log('Window loaded, initializing...');
+      init();
+    });
+
+    // Fallback initialization
+    if (document.readyState === 'complete') {
+      init();
+    }
+  </script>
+</body>
+</html>
